@@ -55,10 +55,10 @@ CREATE TABLE `miaosha_goods` (
 -- ----------------------------
 -- Records of miaosha_goods
 -- ----------------------------
-INSERT INTO `miaosha_goods` VALUES ('1', '1', '0.01', '9', '2017-12-04 21:51:23', '2017-12-31 21:51:27');
-INSERT INTO `miaosha_goods` VALUES ('2', '2', '0.01', '9', '2017-12-04 21:40:14', '2017-12-31 14:00:24');
-INSERT INTO `miaosha_goods` VALUES ('3', '3', '0.01', '9', '2017-12-04 21:40:14', '2017-12-31 14:00:24');
-INSERT INTO `miaosha_goods` VALUES ('4', '4', '0.01', '9', '2017-12-04 21:40:14', '2017-12-31 14:00:24');
+INSERT INTO `miaosha_goods` VALUES ('1', '1', '0.01', '9', '2025-9-04 21:51:23', '2025-12-31 21:51:27');
+INSERT INTO `miaosha_goods` VALUES ('2', '2', '0.01', '9', '2025-9-04 21:40:14', '2025-12-31 14:00:24');
+INSERT INTO `miaosha_goods` VALUES ('3', '3', '0.01', '9', '2025-9-04 21:40:14', '2025-12-31 14:00:24');
+INSERT INTO `miaosha_goods` VALUES ('4', '4', '0.01', '9', '2025-9-04 21:40:14', '2025-12-31 14:00:24');
 
 -- ----------------------------
 -- Table structure for miaosha_message
