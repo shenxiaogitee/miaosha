@@ -107,6 +107,7 @@ public class GoodsController extends BaseController {
         long now = System.currentTimeMillis();
         int miaoshaStatus = 0;
         int remainSeconds = 0;
+        // 秒杀商品详情查询，计算 秒杀状态，秒杀倒计时
         if (now < startAt) {//秒杀还没开始，倒计时
             remainSeconds = (int) ((startAt - now) / 1000);
         } else if (now > endAt) {//秒杀已经结束
