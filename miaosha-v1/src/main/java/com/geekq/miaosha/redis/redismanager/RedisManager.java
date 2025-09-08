@@ -10,8 +10,16 @@ public class RedisManager {
 
     static {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
-        jedisPoolConfig.setMaxWaitMillis(20);
-        jedisPoolConfig.setMaxIdle(10);
+        // 增加最大等待时间，从20毫秒改为2000毫秒
+        jedisPoolConfig.setMaxWaitMillis(2000);
+        // 增加最大连接数
+        jedisPoolConfig.setMaxTotal(1000);
+        // 增加最大空闲连接数
+        jedisPoolConfig.setMaxIdle(500);
+        // 设置最小空闲连接数
+        jedisPoolConfig.setMinIdle(50);
+        // 设置测试连接
+        jedisPoolConfig.setTestOnBorrow(true);
         jedisPool = new JedisPool(jedisPoolConfig, "117.72.214.81" , 16379);
     }
 

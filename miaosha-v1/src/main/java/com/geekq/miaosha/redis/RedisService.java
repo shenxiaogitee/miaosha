@@ -66,12 +66,16 @@ public class RedisService {
             result = jedis.setnx(key, value);
         } catch (Exception e) {
             log.error("expire key:{} error", key, e);
-            jedisPool.returnResource(jedis);
+            if (jedis != null) {
+                jedis.close();
+            }
             return result;
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
         }
-        jedisPool.returnResource(jedis);
         return result;
-
     }
 
     /**
@@ -89,10 +93,15 @@ public class RedisService {
             result = jedis.expire(key, exTime);
         } catch (Exception e) {
             log.error("expire key:{} error", key, e);
-            jedisPool.returnBrokenResource(jedis);
+            if (jedis != null) {
+                jedis.close();
+            }
             return result;
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
         }
-        jedisPool.returnResource(jedis);
         return result;
     }
 
@@ -121,10 +130,15 @@ public class RedisService {
             result = jedis.get(key);
         } catch (Exception e) {
             log.error("expire key:{} error", key, e);
-            jedisPool.returnBrokenResource(jedis);
+            if (jedis != null) {
+                jedis.close();
+            }
             return result;
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
         }
-        jedisPool.returnResource(jedis);
         return result;
     }
 
@@ -136,10 +150,11 @@ public class RedisService {
             result = jedis.getSet(key, value);
         } catch (Exception e) {
             log.error("expire key:{} error", key, e);
-            jedisPool.returnBrokenResource(jedis);
+            if (jedis != null) {
+                jedis.close();
+            }
             return result;
         }
-        jedisPool.returnResource(jedis);
         return result;
     }
 
@@ -157,6 +172,9 @@ public class RedisService {
             //生成真正的key
             String realKey = prefix.getPrefix() + key;
             int seconds = prefix.expireSeconds();
+
+            log.info("redis 存入数据：" + realKey);
+            log.info("redis 存入数据：" + str);
             if (seconds <= 0) {
                 jedis.set(realKey, str);
             } else {

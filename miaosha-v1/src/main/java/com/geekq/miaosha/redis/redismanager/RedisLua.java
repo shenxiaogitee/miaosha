@@ -86,10 +86,18 @@ public class RedisLua {
             List<String> argves = new ArrayList<String>();
             // jedis.auth("youxin11"); // Commented out as Redis server has no password configured
             String luaScript = jedis.scriptLoad(count);
-            System.out.println(luaScript);
             jedis.evalsha(luaScript, keys, argves);
         } catch (Exception e) {
             logger.error("统计访问次数失败！！！", e);
+        } finally {
+            // 确保Jedis连接被归还到连接池
+            if (jedis != null) {
+                try {
+                    jedis.close();
+                } catch (Exception e) {
+                    logger.error("关闭Jedis连接失败", e);
+                }
+            }
         }
     }
 }
