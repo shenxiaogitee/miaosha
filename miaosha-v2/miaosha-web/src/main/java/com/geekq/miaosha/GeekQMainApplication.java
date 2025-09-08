@@ -12,7 +12,7 @@ public class GeekQMainApplication {
 
     public static void main(String[] args) throws Exception {
 //        RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getAdaptiveExtension();
-//        Registry registry = registryFactory.getRegistry(URL.valueOf("zookeeper://localhost:2181"));
+//        Registry registry = registryFactory.getRegistry(URL.valueOf("zookeeper://117.72.214.81:2181"));
 //        registry.register(URL.valueOf("override://0.0.0.0/com.geekq.api.service.GoodsService?category=configurators&dynamic=false&application=dubbo-consumer2.0&mock=fail:return+444"));
         SpringApplication.run(GeekQMainApplication.class, args);
     }

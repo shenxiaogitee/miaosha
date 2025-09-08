@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch;
 public class RedisLimitRateWithLUA {
 
     public static boolean accquire() throws IOException, URISyntaxException {
-        Jedis jedis = new Jedis("39.107.245.253");
+        Jedis jedis = new Jedis("117.72.214.81", 16379);
 
         String lua =
                 "local key = KEYS[1] " +
