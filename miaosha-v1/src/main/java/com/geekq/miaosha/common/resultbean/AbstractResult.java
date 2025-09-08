@@ -5,17 +5,17 @@ import com.geekq.miaosha.common.enums.ResultStatus;
 public class AbstractResult {
     private ResultStatus status;
     private int code;
-    private String message;
+    private String msg;
 
     protected AbstractResult(ResultStatus status, String message) {
         this.code = status.getCode();
         this.status = status;
-        this.message = message;
+        this.msg = message;
     }
 
     protected AbstractResult(ResultStatus status) {
         this.code = status.getCode();
-        this.message = status.getMessage();
+        this.msg = status.getMessage();
         this.status = status;
     }
 
@@ -30,13 +30,13 @@ public class AbstractResult {
 
     public AbstractResult withError(String message) {
         this.status = ResultStatus.SYSTEM_ERROR;
-        this.message = message;
+        this.msg = message;
         return this;
     }
 
     public AbstractResult withError(int code, String message) {
         this.code = code;
-        this.message = message;
+        this.msg = message;
         return this;
     }
 
@@ -49,8 +49,8 @@ public class AbstractResult {
         return this.status;
     }
 
-    public String getMessage() {
-        return this.message == null ? this.status.getMessage() : this.message;
+    public String getMsg() {
+        return this.msg == null ? this.status.getMessage() : this.msg;
     }
 
     public int getCode() {
