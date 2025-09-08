@@ -51,6 +51,7 @@ public class GoodsController extends BaseController {
         model.addAttribute("user", user);
         List<GoodsVo> goodsList = goodsService.listGoodsVo();
         model.addAttribute("goodsList", goodsList);
+        // 商品列表 页面级 缓存
         return render(request, response, model, "goods_list", GoodsKey.getGoodsList, "");
     }
 
