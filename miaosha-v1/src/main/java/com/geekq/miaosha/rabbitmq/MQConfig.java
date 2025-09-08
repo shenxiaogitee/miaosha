@@ -39,6 +39,22 @@ public class MQConfig {
     }
 
     /**
+     * 秒杀队列
+     */
+    @Bean
+    public Queue miaoshaQueue() {
+        return new Queue(MIAOSHA_QUEUE, true);
+    }
+
+    /**
+     * 秒杀测试队列
+     */
+    @Bean
+    public Queue miaoshaTestQueue() {
+        return new Queue(MIAOSHATEST, true);
+    }
+
+    /**
      * Topic模式 交换机Exchange
      */
     @Bean
