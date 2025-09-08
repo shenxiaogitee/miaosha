@@ -73,6 +73,7 @@ public class GoodsController extends BaseController {
         long endAt = goods.getEndDate().getTime();
         long now = System.currentTimeMillis();
 
+        // 秒杀商品详情查询，计算 秒杀状态，秒杀倒计时
         int miaoshaStatus = 0;
         int remainSeconds = 0;
         if (now < startAt) {//秒杀还没开始，倒计时
