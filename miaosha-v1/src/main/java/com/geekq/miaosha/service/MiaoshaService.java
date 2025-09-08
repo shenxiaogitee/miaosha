@@ -122,7 +122,7 @@ public class MiaoshaService {
         g.setFont(new Font("Candara", Font.BOLD, 24));
         g.drawString(verifyCode, 8, 24);
         g.dispose();
-        //把验证码存到redis中
+        //把验证码存到redis中，有效期 300秒，key是 user.getNickname() + "," + goodsId， value 是验证码 答案
         int rnd = calc(verifyCode);
         redisService.set(MiaoshaKey.getMiaoshaVerifyCode, user.getNickname() + "," + goodsId, rnd);
         //输出图片

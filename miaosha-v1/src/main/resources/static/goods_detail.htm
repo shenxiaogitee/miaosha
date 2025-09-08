@@ -229,6 +229,7 @@ function countDown(){
 			clearTimeout(timeout);
 		}
 		$("#miaoshaTip").html("秒杀进行中");
+        // 秒杀进行中，查询验证码
 		$("#verifyCodeImg").attr("src", "/miaosha/verifyCode?goodsId="+$("#goodsId").val());
 		$("#verifyCodeImg").show();
 		$("#verifyCode").show();
