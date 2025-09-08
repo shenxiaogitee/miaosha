@@ -46,6 +46,8 @@ public class AccessInterceptor extends HandlerInterceptorAdapter {
 //			if(hm.getMethod().getName().startsWith("test")){
 //				return true;
 //			}
+            // 根据 token 从缓存中去 用户信息，同时给 token 缓存续期
+            // 滑动过期策略 ：每次用户访问系统时，如果能够通过token找到用户，就重新设置这个token的过期时间，相当于用户的登录状态被"续期"了。
             MiaoshaUser user = getUser(request, response);
             UserContext.setUser(user);
             AccessLimit accessLimit = hm.getMethodAnnotation(AccessLimit.class);

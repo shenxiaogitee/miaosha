@@ -116,6 +116,7 @@ public class MiaoShaUserService {
 
         String mobile = loginVo.getMobile();
         String password = loginVo.getPassword();
+        // 用户信息 走缓存 拿不到再走数据库，把用户存缓存
         MiaoshaUser user = getByNickName(mobile);
         if (user == null) {
             throw new GlobleException(MOBILE_NOT_EXIST);
@@ -159,6 +160,7 @@ public class MiaoShaUserService {
     }
 
     private void addCookie(HttpServletResponse response, String token, MiaoshaUser user) {
+        // 把 token 存入缓存
         redisService.set(MiaoShaUserKey.token, token, user);
         Cookie cookie = new Cookie(COOKIE_NAME_TOKEN, token);
         //设置有效期
