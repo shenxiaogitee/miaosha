@@ -55,6 +55,12 @@ public class AccessInterceptor extends HandlerInterceptorAdapter {
             int seconds = accessLimit.seconds();
             int maxCount = accessLimit.maxCount();
             boolean needLogin = accessLimit.needLogin();
+            // redis 实现限流
+            // getClass().getSimpleName():prefix  + key
+            // AccessKey:access + request.getRequestURI() + _user.getNickname()
+            // AccessKey:access/miaosha/path_17352437166
+            // AccessKey:access/miaosha/result_17352437166
+            // AccessKey:access/miaosha/{path}/do_miaosha_17352437166
             String key = request.getRequestURI();
             if (needLogin) {
                 if (user == null) {

@@ -62,7 +62,7 @@ public class MiaoshaController implements InitializingBean {
      * 5000 * 10
      * get　post get 幂等　从服务端获取数据　不会产生影响　　post 对服务端产生变化
      */
-    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
+    @AccessLimit(seconds = 60, maxCount = 5, needLogin = true)
     @RequestMapping(value = "/{path}/do_miaosha", method = RequestMethod.POST)
     @ResponseBody
     public ResultGeekQ<Integer> miaosha(Model model, MiaoshaUser user, @PathVariable("path") String path,
@@ -120,7 +120,7 @@ public class MiaoshaController implements InitializingBean {
      * -1：秒杀失败
      * 0： 排队中
      */
-    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
+    @AccessLimit(seconds = 60, maxCount = 5, needLogin = true)
     @RequestMapping(value = "/result", method = RequestMethod.GET)
     @ResponseBody
     public ResultGeekQ<Long> miaoshaResult(Model model, MiaoshaUser user,
@@ -136,7 +136,7 @@ public class MiaoshaController implements InitializingBean {
         return result;
     }
 
-    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
+    @AccessLimit(seconds = 60, maxCount = 5, needLogin = true)
     @RequestMapping(value = "/path", method = RequestMethod.GET)
     @ResponseBody
     public ResultGeekQ<String> getMiaoshaPath(HttpServletRequest request, MiaoshaUser user,
@@ -207,6 +207,7 @@ public class MiaoshaController implements InitializingBean {
      */
     @Override
     public void afterPropertiesSet() throws Exception {
+        logger.info("系统初始化，将秒杀商品库存存入redis，存入本地超卖Map");
         List<GoodsVo> goodsList = goodsService.listGoodsVo();
         if (goodsList == null) {
             return;
