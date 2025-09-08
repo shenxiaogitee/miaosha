@@ -240,6 +240,9 @@ function countDown(){
 		$("#verifyCode").hide();
 	}
 }
+// refreshVerifyCode() 函数给验证码图片URL添加时间戳参数的原因是为了 防止浏览器缓存验证码图片 。
+// 1. 浏览器缓存机制 ：浏览器会缓存静态资源（包括图片）以提高页面加载速度。当多次请求同一URL的资源时，浏览器会直接从缓存中获取，而不会向服务器发送新请求。
+// 2. 时间戳作用 ：通过在URL后添加时间戳（ new Date().getTime() ），每次请求的URL都会不同，这样浏览器就会认为这是一个新的资源请求，从而绕过缓存，向服务器发送新的请求获取新的验证码图片。
 function refreshVerifyCode(){
 	$("#verifyCodeImg").attr("src", "/miaosha/verifyCode?goodsId="+$("#goodsId").val()+"&timestamp="+new Date().getTime());
 }
