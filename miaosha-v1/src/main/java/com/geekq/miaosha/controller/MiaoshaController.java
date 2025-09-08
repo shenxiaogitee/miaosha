@@ -207,7 +207,6 @@ public class MiaoshaController implements InitializingBean {
      */
     @Override
     public void afterPropertiesSet() throws Exception {
-        logger.info("系统初始化，将秒杀商品库存存入redis，存入本地超卖Map");
         List<GoodsVo> goodsList = goodsService.listGoodsVo();
         if (goodsList == null) {
             return;

@@ -155,7 +155,7 @@ INSERT INTO `miaosha_user` VALUES ('18912341241', '18612766141', 'b7797cce01b4b1
 INSERT INTO `miaosha_user` VALUES ('18912341242', '18612766145', 'b7797cce01b4b131b433b6acf4add449', '1a2b3c4d', null, '2019-01-11 11:38:29', null, '0');
 INSERT INTO `miaosha_user` VALUES ('18912341243', '18612766122', 'b7797cce01b4b131b433b6acf4add449', '1a2b3c4d', null, '2019-01-11 11:41:52', null, '0');
 INSERT INTO `miaosha_user` VALUES ('18912341244', '18612766133', 'b7797cce01b4b131b433b6acf4add449', '1a2b3c4d', null, '2019-01-11 11:43:24', null, '0');
-INSERT INTO `miaosha_user` VALUES ('18912341245', '18612766444', 'b7797cce01b4b131b433b6acf4add449', '1a2b3c4d', null, '2019-01-11 13:44:29', null, '0');
+INSERT INTO `miaosha_user` VALUES ('18912341245', '17352437166', 'b7797cce01b4b131b433b6acf4add449', '1a2b3c4d', null, '2019-01-11 13:44:29', null, '0');
 
 -- ----------------------------
 -- Table structure for order_info
