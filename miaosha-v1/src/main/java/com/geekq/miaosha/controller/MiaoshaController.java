@@ -62,7 +62,7 @@ public class MiaoshaController implements InitializingBean {
      * 5000 * 10
      * get　post get 幂等　从服务端获取数据　不会产生影响　　post 对服务端产生变化
      */
-    @AccessLimit(seconds = 60, maxCount = 5, needLogin = true)
+    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
     @RequestMapping(value = "/{path}/do_miaosha", method = RequestMethod.POST)
     @ResponseBody
     public ResultGeekQ<Integer> miaosha(Model model, MiaoshaUser user, @PathVariable("path") String path,
@@ -89,24 +89,30 @@ public class MiaoshaController implements InitializingBean {
 //		}
 
         //是否已经秒杀到
+        // key userId goodsId； value 秒杀订单
+        // 从 redis 查询 秒杀订单，查询到则返回 不能重复秒杀
         MiaoshaOrder order = orderService.getMiaoshaOrderByUserIdGoodsId(Long.valueOf(user.getNickname()), goodsId);
         if (order != null) {
             result.withError(REPEATE_MIAOSHA.getCode(), REPEATE_MIAOSHA.getMessage());
             return result;
         }
         //内存标记，减少redis访问
+        // 内存级别判断 商品是否已经秒杀完毕
         boolean over = localOverMap.get(goodsId);
         if (over) {
             result.withError(MIAO_SHA_OVER.getCode(), MIAO_SHA_OVER.getMessage());
             return result;
         }
         //预见库存
+        // redis 减库存
         Long stock = redisService.decr(GoodsKey.getMiaoshaGoodsStock, "" + goodsId);
+        // 如果结果小于0，说明已经卖完，内存级别设置秒杀结束
         if (stock < 0) {
             localOverMap.put(goodsId, true);
             result.withError(MIAO_SHA_OVER.getCode(), MIAO_SHA_OVER.getMessage());
             return result;
         }
+        // 发送 异步消息，异步创建订单
         MiaoshaMessage mm = new MiaoshaMessage();
         mm.setGoodsId(goodsId);
         mm.setUser(user);
@@ -116,11 +122,12 @@ public class MiaoshaController implements InitializingBean {
 
 
     /**
+     * 前端 轮询 秒杀结果
      * orderId：成功
      * -1：秒杀失败
      * 0： 排队中
      */
-    @AccessLimit(seconds = 60, maxCount = 5, needLogin = true)
+    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
     @RequestMapping(value = "/result", method = RequestMethod.GET)
     @ResponseBody
     public ResultGeekQ<Long> miaoshaResult(Model model, MiaoshaUser user,
@@ -131,12 +138,15 @@ public class MiaoshaController implements InitializingBean {
             return result;
         }
         model.addAttribute("user", user);
+        // 从 redis 查询 秒杀订单信息
+        // 如果有订单，返回
+        // 如果没有，查询是否秒杀结束，排队中 / 秒杀结束
         Long miaoshaResult = miaoshaService.getMiaoshaResult(Long.valueOf(user.getNickname()), goodsId);
         result.setData(miaoshaResult);
         return result;
     }
 
-    @AccessLimit(seconds = 60, maxCount = 5, needLogin = true)
+    @AccessLimit(seconds = 5, maxCount = 5, needLogin = true)
     @RequestMapping(value = "/path", method = RequestMethod.GET)
     @ResponseBody
     public ResultGeekQ<String> getMiaoshaPath(HttpServletRequest request, MiaoshaUser user,

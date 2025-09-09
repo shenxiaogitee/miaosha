@@ -37,6 +37,7 @@ public class OrderService {
 
     @Transactional
     public OrderInfo createOrder(MiaoshaUser user, GoodsVo goods) {
+        // 创建订单
         OrderInfo orderInfo = new OrderInfo();
         orderInfo.setCreateDate(new Date());
         orderInfo.setDeliveryAddrId(0L);
@@ -48,11 +49,13 @@ public class OrderService {
         orderInfo.setStatus(0);
         orderInfo.setUserId(Long.valueOf(user.getNickname()));
         orderDao.insert(orderInfo);
+        // 创建秒杀订单
         MiaoshaOrder miaoshaOrder = new MiaoshaOrder();
         miaoshaOrder.setGoodsId(goods.getId());
         miaoshaOrder.setOrderId(orderInfo.getId());
         miaoshaOrder.setUserId(Long.valueOf(user.getNickname()));
         orderDao.insertMiaoshaOrder(miaoshaOrder);
+        // redis 缓存秒杀订单
         redisService.set(OrderKey.getMiaoshaOrderByUidGid, "" + user.getNickname() + "_" + goods.getId(), miaoshaOrder);
         return orderInfo;
     }

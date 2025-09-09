@@ -39,6 +39,7 @@ public class MQReceiver {
     @Autowired
     MiaoShaMessageService messageService;
 
+    // 接收秒杀消息
     @RabbitListener(queues = MQConfig.MIAOSHA_QUEUE)
     public void receive(String message) {
         log.info("receive message:" + message);
@@ -46,6 +47,7 @@ public class MQReceiver {
         MiaoshaUser user = mm.getUser();
         long goodsId = mm.getGoodsId();
 
+        // 查询商品实际库存
         GoodsVo goods = goodsService.getGoodsVoByGoodsId(goodsId);
         int stock = goods.getStockCount();
         if (stock <= 0) {
@@ -56,6 +58,7 @@ public class MQReceiver {
         if (order != null) {
             return;
         }
+        // 秒杀到了且有库存，减库存，下订单
         //减库存 下订单 写入秒杀订单
         miaoshaService.miaosha(user, goods);
     }

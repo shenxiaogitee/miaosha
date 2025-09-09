@@ -46,9 +46,11 @@ public class MiaoshaService {
         //减库存 下订单 写入秒杀订单
         boolean success = goodsService.reduceStock(goods);
         if (success) {
+            // 创建订单
             return orderService.createOrder(user, goods);
         } else {
             //如果库存不存在则内存标记为true
+            // 如果库存不足，redis缓存商品已卖完
             setGoodsOver(goods.getId());
             return null;
         }
