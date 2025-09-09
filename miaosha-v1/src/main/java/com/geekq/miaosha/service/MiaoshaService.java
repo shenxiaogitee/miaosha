@@ -80,6 +80,7 @@ public class MiaoshaService {
         if (user == null || path == null) {
             return false;
         }
+        // 根据  nickname + goodsId 取出 动态秒杀路径，并校验
         String pathOld = redisService.get(MiaoshaKey.getMiaoshaPath, "" + user.getNickname() + "_" + goodsId, String.class);
         return path.equals(pathOld);
     }
@@ -88,6 +89,7 @@ public class MiaoshaService {
         if (user == null || goodsId <= 0) {
             return null;
         }
+        // 创建动态秒杀路径，存入redis key 为 nickname + goodsId, value 为 MD5加密的值
         String str = MD5Utils.md5(UUIDUtil.uuid() + "123456");
         redisService.set(MiaoshaKey.getMiaoshaPath, "" + user.getNickname() + "_" + goodsId, str);
         return str;
