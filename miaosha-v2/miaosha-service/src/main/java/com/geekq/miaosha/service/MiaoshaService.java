@@ -186,10 +186,13 @@ public class MiaoshaService {
         if (user == null || goodsId <= 0) {
             return false;
         }
+        // 从缓存中 获取验证码
         Integer codeOld = redisService.get(MiaoshaKey.getMiaoshaVerifyCode, user.getNickname() + "," + goodsId, Integer.class);
+        // 验证 验证码
         if (codeOld == null || codeOld - verifyCode != 0) {
             return false;
         }
+        // 删除验证码
         redisService.delete(MiaoshaKey.getMiaoshaVerifyCode, user.getNickname() + "," + goodsId);
         return true;
     }
