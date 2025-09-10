@@ -16,6 +16,12 @@ public class MQConfig {
      */
     public static final String MIAOSHA_QUEUE = "miaosha.queue";
 
+    // ==== DLX / DLQ 定义 ====
+    public static final String MIAOSHA_DLX_EXCHANGE = "miaosha.dlx";     // 死信交换机（Direct）
+    public static final String MIAOSHA_DLQ          = "miaosha.queue.dlq"; // 死信队列
+    public static final String MIAOSHA_DLQ_KEY      = "miaosha.dlq";       // 死信路由键
+
+
     public static final String EXCHANGE_TOPIC = "exchange_topic";
 
     public static final String MIAOSHA_MESSAGE = "miaosha_mess";
@@ -41,9 +47,40 @@ public class MQConfig {
     /**
      * 秒杀队列
      */
+    //@Bean
+    //public Queue miaoshaQueue() {
+    //    return new Queue(MIAOSHA_QUEUE, true);
+    //}
+
+    /** 主业务队列（挂上 DLX） */
     @Bean
     public Queue miaoshaQueue() {
-        return new Queue(MIAOSHA_QUEUE, true);
+        return QueueBuilder.durable(MIAOSHA_QUEUE)
+                .withArgument("x-dead-letter-exchange", MIAOSHA_DLX_EXCHANGE)
+                .withArgument("x-dead-letter-routing-key", MIAOSHA_DLQ_KEY)
+                // （可选）消息过期转入 DLQ：.withArgument("x-message-ttl", 60000)
+                // （可选）队列满了也会死信：.withArgument("x-max-length", 100000)
+                .build();
+    }
+
+    /** 死信交换机（Direct） */
+    @Bean
+    public DirectExchange miaoshaDlxExchange() {
+        return new DirectExchange(MIAOSHA_DLX_EXCHANGE);
+    }
+
+    /** 死信队列 */
+    @Bean
+    public Queue miaoshaDlq() {
+        return QueueBuilder.durable(MIAOSHA_DLQ).build();
+    }
+
+    /** DLQ 绑定到 DLX */
+    @Bean
+    public Binding miaoshaDlqBinding() {
+        return BindingBuilder.bind(miaoshaDlq())
+                .to(miaoshaDlxExchange())
+                .with(MIAOSHA_DLQ_KEY);
     }
 
     /**

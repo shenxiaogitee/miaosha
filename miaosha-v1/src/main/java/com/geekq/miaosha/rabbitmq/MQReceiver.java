@@ -69,8 +69,9 @@ public class MQReceiver {
             miaoshaService.miaosha(user, goods);
             channel.basicAck(tag, false);          // 成功 → ACK
         } catch (DuplicateKeyException e) {
-            log.warn("Duplicate order, treat as success: {}", message);
-            channel.basicAck(tag, false);          // 幂等冲突 → ACK 丢弃
+            log.warn("Duplicate order: {}", message);
+            //channel.basicAck(tag, false);                   // 幂等冲突 → ACK 丢弃
+            channel.basicNack(tag, false, false);  // 幂等冲突 → DLQ（建议配 DLX）
         } catch (TransientDataAccessException e) {
             channel.basicNack(tag, false, true);   // 临时性异常 → 允许重试
         } catch (Exception e) {
