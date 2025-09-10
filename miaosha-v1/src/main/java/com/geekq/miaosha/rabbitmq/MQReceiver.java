@@ -14,12 +14,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.TransientDataAccessException;
+import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Service
 public class MQReceiver {
@@ -41,12 +45,33 @@ public class MQReceiver {
     @Autowired
     MiaoShaMessageService messageService;
 
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+
+    /**
+     * 监听死信队列，写日志/落库/报警，通常直接 ACK（AUTO 模式下方法返回即 ACK）
+     */
+    @RabbitListener(queues = MQConfig.MIAOSHA_DLQ)
+    public void consumeDlq(String body) {
+        log.error("[DLQ] 收到死信：{}", body);
+        // TODO: 这里可以落库 + 告警（如钉钉/飞书/邮件），或转停车场等
+    }
+
+    // 最大重试次数
+    private static final int MAX_RETRY = 3;
+
     // 接收秒杀消息
     @RabbitListener(queues = MQConfig.MIAOSHA_QUEUE)
     public void receive(String message, Channel channel, Message amqpMsg) throws IOException {
         long tag = amqpMsg.getMessageProperties().getDeliveryTag();
         try {
             log.info("receive message:" + message);
+
+            // 触发条件你自定：比如消息体包含某个标记时模拟瞬时异常
+            if (message.contains("simulate:transient")) {
+                throw new TransientDataAccessResourceException("mock: transient glitch");
+            }
+
             MiaoshaMessage mm = RedisService.stringToBean(message, MiaoshaMessage.class);
             MiaoshaUser user = mm.getUser();
             long goodsId = mm.getGoodsId();
@@ -69,13 +94,42 @@ public class MQReceiver {
             miaoshaService.miaosha(user, goods);
             channel.basicAck(tag, false);          // 成功 → ACK
         } catch (DuplicateKeyException e) {
-            log.warn("Duplicate order: {}", message);
-            //channel.basicAck(tag, false);                   // 幂等冲突 → ACK 丢弃
-            channel.basicNack(tag, false, false);  // 幂等冲突 → DLQ（建议配 DLX）
+            // 幂等冲突：已下过单，当作成功
+            log.warn("Duplicate order, treat as success: {}", message);
+            channel.basicAck(tag, false);
+            //channel.basicNack(tag, false, false);  // 幂等冲突 → DLQ（建议配 DLX）
         } catch (TransientDataAccessException e) {
-            channel.basicNack(tag, false, true);   // 临时性异常 → 允许重试
+            // 认为是临时性异常（可重试）
+            int retry = currentRetry(amqpMsg);
+            if (retry < MAX_RETRY) {
+                log.warn("Transient error, retry {}/{} after delay: {}", retry + 1, MAX_RETRY, message);
+                // 递增重试计数，发到延迟队列
+                rabbitTemplate.convertAndSend("", MQConfig.MIAOSHA_RETRY_5S_QUEUE, message, m -> {
+                    m.getMessageProperties().getHeaders().put("x-retry", retry + 1);
+                    return m;
+                });
+                channel.basicAck(tag, false);       // ACK 掉当前这条
+            } else {
+                // 超限：进停车场并 ACK
+                log.error("Retry exceeded ({}). Send to parking-lot: {}", MAX_RETRY, message, e);
+                rabbitTemplate.convertAndSend("", MQConfig.MIAOSHA_PARKING_LOT, message);
+                channel.basicAck(tag, false);
+            }
         } catch (Exception e) {
-            channel.basicNack(tag, false, false);  // 不可恢复异常 → 直接丢/DLQ（建议配 DLX）
+            // 非可重试异常：直接死信（由 DLX 转到 DLQ）
+            log.error("Non-retryable error, dead-letter: {}", message, e);
+            channel.basicNack(tag, false, false);   // 不重入队 ⇒ 走 DLX → DLQ
+        }
+    }
+
+    private int currentRetry(Message msg) {
+        Map<String, Object> h = msg.getMessageProperties().getHeaders();
+        Object v = h.get("x-retry");
+        if (v instanceof Number) return ((Number) v).intValue();
+        try {
+            return Integer.parseInt(String.valueOf(v));
+        } catch (Exception ignore) {
+            return 0;
         }
     }
 

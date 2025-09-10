@@ -21,6 +21,11 @@ public class MQConfig {
     public static final String MIAOSHA_DLQ          = "miaosha.queue.dlq"; // 死信队列
     public static final String MIAOSHA_DLQ_KEY      = "miaosha.dlq";       // 死信路由键
 
+    /** 延迟重试队列（固定 5s 后回流主队列） */
+    public static final String MIAOSHA_RETRY_5S_QUEUE = "miaosha.queue.retry.5s";
+
+    /** 停车场队列（重试超限/人工处理） */
+    public static final String MIAOSHA_PARKING_LOT = "miaosha.queue.parking";
 
     public static final String EXCHANGE_TOPIC = "exchange_topic";
 
@@ -52,7 +57,7 @@ public class MQConfig {
     //    return new Queue(MIAOSHA_QUEUE, true);
     //}
 
-    /** 主业务队列（挂上 DLX） */
+    /** 主队列：挂上 DLX（如果你主队列已存在且无 DLX，请先删队列或改新名再创建） */
     @Bean
     public Queue miaoshaQueue() {
         return QueueBuilder.durable(MIAOSHA_QUEUE)
@@ -81,6 +86,22 @@ public class MQConfig {
         return BindingBuilder.bind(miaoshaDlq())
                 .to(miaoshaDlxExchange())
                 .with(MIAOSHA_DLQ_KEY);
+    }
+
+    /** 延迟重试队列：消息在这里等 5 秒，到期后经默认交换机 "" 回流主队列 */
+    @Bean
+    public Queue miaoshaRetry5sQueue() {
+        return QueueBuilder.durable(MIAOSHA_RETRY_5S_QUEUE)
+                .withArgument("x-message-ttl", 5000)          // 固定 5 秒
+                .withArgument("x-dead-letter-exchange", "")   // 回到默认交换机
+                .withArgument("x-dead-letter-routing-key", MIAOSHA_QUEUE) // 定向回主队列
+                .build();
+    }
+
+    /** 停车场队列：不绑定任何交换机，仅供人工/监控消费 */
+    @Bean
+    public Queue miaoshaParkingLot() {
+        return QueueBuilder.durable(MIAOSHA_PARKING_LOT).build();
     }
 
     /**
