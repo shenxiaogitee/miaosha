@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.TransientDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -41,26 +43,39 @@ public class MQReceiver {
 
     // 接收秒杀消息
     @RabbitListener(queues = MQConfig.MIAOSHA_QUEUE)
-    public void receive(String message) {
-        log.info("receive message:" + message);
-        MiaoshaMessage mm = RedisService.stringToBean(message, MiaoshaMessage.class);
-        MiaoshaUser user = mm.getUser();
-        long goodsId = mm.getGoodsId();
+    public void receive(String message, Channel channel, Message amqpMsg) throws IOException {
+        long tag = amqpMsg.getMessageProperties().getDeliveryTag();
+        try {
+            log.info("receive message:" + message);
+            MiaoshaMessage mm = RedisService.stringToBean(message, MiaoshaMessage.class);
+            MiaoshaUser user = mm.getUser();
+            long goodsId = mm.getGoodsId();
 
-        // 查询商品实际库存
-        GoodsVo goods = goodsService.getGoodsVoByGoodsId(goodsId);
-        int stock = goods.getStockCount();
-        if (stock <= 0) {
-            return;
+            // 查询商品实际库存
+            GoodsVo goods = goodsService.getGoodsVoByGoodsId(goodsId);
+            int stock = goods.getStockCount();
+            if (stock <= 0) {
+                channel.basicAck(tag, false);      // 没库存/商品不存在 → 当作已处理
+                return;
+            }
+            //判断是否已经秒杀到了
+            MiaoshaOrder order = orderService.getMiaoshaOrderByUserIdGoodsId(Long.valueOf(user.getNickname()), goodsId);
+            if (order != null) {
+                channel.basicAck(tag, false);      // 已下单 → 幂等
+                return;
+            }
+            // 秒杀到了且有库存，减库存，下订单
+            // 减库存 下订单 写入秒杀订单
+            miaoshaService.miaosha(user, goods);
+            channel.basicAck(tag, false);          // 成功 → ACK
+        } catch (DuplicateKeyException e) {
+            log.warn("Duplicate order, treat as success: {}", message);
+            channel.basicAck(tag, false);          // 幂等冲突 → ACK 丢弃
+        } catch (TransientDataAccessException e) {
+            channel.basicNack(tag, false, true);   // 临时性异常 → 允许重试
+        } catch (Exception e) {
+            channel.basicNack(tag, false, false);  // 不可恢复异常 → 直接丢/DLQ（建议配 DLX）
         }
-        //判断是否已经秒杀到了
-        MiaoshaOrder order = orderService.getMiaoshaOrderByUserIdGoodsId(Long.valueOf(user.getNickname()), goodsId);
-        if (order != null) {
-            return;
-        }
-        // 秒杀到了且有库存，减库存，下订单
-        //减库存 下订单 写入秒杀订单
-        miaoshaService.miaosha(user, goods);
     }
 
 
