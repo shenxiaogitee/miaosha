@@ -20,7 +20,7 @@ public class RedisManager {
         jedisPoolConfig.setMinIdle(50);
         // 设置测试连接
         jedisPoolConfig.setTestOnBorrow(true);
-        jedisPool = new JedisPool(jedisPoolConfig, "117.72.214.81" , 16379);
+        jedisPool = new JedisPool(jedisPoolConfig, "117.72.144.137" , 16379);
     }
 
     public static Jedis getJedis() throws Exception {

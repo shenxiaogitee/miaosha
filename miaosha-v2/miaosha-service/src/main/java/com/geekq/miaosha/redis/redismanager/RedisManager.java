@@ -12,7 +12,7 @@ public class RedisManager {
         JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
         jedisPoolConfig.setMaxWaitMillis(20);
         jedisPoolConfig.setMaxIdle(10);
-        jedisPool = new JedisPool(jedisPoolConfig, "117.72.214.81", 16379);
+        jedisPool = new JedisPool(jedisPoolConfig, "117.72.144.137", 16379);
     }
 
     public static Jedis getJedis() throws Exception {
